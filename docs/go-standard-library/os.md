@@ -273,7 +273,74 @@ func main() {
 // gopher lives in /usr/gopher.
 ```
 
+## func Geteuid
+```go{1}
+func Geteuid() int
+```
+Geteuid 返回呼叫者的数字有效用户 ID
 
+## func Getgid
+```go{1}
+func Getgid() int
+```
+Getgid 返回呼叫者的数字组 ID。
+在 Windows 上，它返回 - 1。
+
+## func Getpid
+```go{1}
+func Getpid() int
+```
+Getpid 返回调用进程的进程 ID。
+在 Windows 上，它返回 - 1。
+
+## func Getppid
+```go{1}
+func Getppid() int
+```
+Getppid 返回调用进程的父进程 ID。
+在 Windows 上，它返回 - 1。
+
+## func Getuid
+```go{1}
+func Getuid() int
+```
+Getuid 返回呼叫者的数字用户 ID。
+在 Windows 上，它返回 - 1。
+
+
+## func Getwd
+```go{1}
+func Getwd() (dir string, err error)
+```
+Getwd 返回当前目录对应的绝对路径名。如果当前目录可以通过多条路径（例如符号链接）到达，Getwd 可能会返回其中任意一条路径。
+在 Unix 平台上，如果环境变量 PWD 提供了一个绝对名称，并且它是当前目录的名称，则返回该名称。
+
+## func Hostname
+```go{1}
+func Hostname() (name string, err error)
+```
+Hostname 返回调用进程的系统主机名。
+如果主机名无法确定，则返回错误。
+在 Windows 上，如果主机名无法确定，则返回错误。
+
+## func IsExist
+```go{1}
+func IsExist(err error) bool
+```
+IsExist 报告是否存在错误，如果错误是类型 *Patherror，则报告错误是否表示文件或目录存在。
+其实这里就是专门判断文件或目录是否存在使用。
+:::warning
+此函数早于 error.Is 。它仅支持 os 包返回的错误。新代码应使用 error.Is(err, fs.ErrExist)。
+:::
+
+## func IsNotExist
+```go{1}
+func IsNotExist(err error) bool
+```
+IsNotExist 返回一个布尔值，指示其参数是否已知 报告文件或目录不存在。满足条件的是 ErrNotExist 以及一些系统调用错误。
+:::warning
+此函数早于 error.Is 。它仅支持 os 包返回的错误。新代码应使用 error.Is(err, fs.ErrNotExist)。
+:::
 
 
 

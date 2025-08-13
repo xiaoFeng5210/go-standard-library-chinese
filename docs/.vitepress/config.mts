@@ -13,8 +13,11 @@ export default defineConfig({
     sidebar: [
       {
         text: '常用标准库',
+        collapsed: false,
         items: [
-          { text: 'fmt', link: '/go-standard-library/fmt.md' },
+          {
+            text: 'fmt', link: '/go-standard-library/fmt.md',
+          },
           { text: 'log', link: '/go-standard-library/log.md' },
           { text: 'os', link: '/go-standard-library/os.md' },
           { text: 'path', link: '/go-standard-library/path.md' },
