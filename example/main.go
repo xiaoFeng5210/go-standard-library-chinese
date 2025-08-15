@@ -1,10 +1,9 @@
 package main
 
 import (
-	"fmt"
-	"os"
+	httpDemo "example/http-demo"
 )
 
 func main() {
-	fmt.Println(os.Getwd())
+	httpDemo.Example1Server()
 }

@@ -342,6 +342,17 @@ IsNotExist 返回一个布尔值，指示其参数是否已知 报告文件或�
 此函数早于 error.Is 。它仅支持 os 包返回的错误。新代码应使用 error.Is(err, fs.ErrNotExist)。
 :::
 
+## func IsPathSeparator
+```go{1}
+func IsPathSeparator(c uint8) bool
+```
+IsPathSeparator 报告 参数c 是否是目录分隔符。
+在 Windows 上，IsPathSeparator 返回 true 当且仅当 c 是 0x2F 或 0x5C。
+在 Unix 上，IsPathSeparator 返回 true 当且仅当 c 是 0x2F。
+
+
+
+
 
 
 
