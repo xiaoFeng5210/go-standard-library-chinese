@@ -1,3 +1,9 @@
+---
+layout: doc
+title: fmt
+outline: [2, 3] 
+---
+
 # fmt
 
 Fmt 包实现了格式化 I/O, 其函数类似于 C 的 printf 和 scanf。格式 “动词” 源于 C, 但更简单。
