@@ -954,6 +954,106 @@ Readdirnames 读取与 file 关联的目录的内容，并按目录顺序返回�
 如果 n > 0,Readdirnames 最多返回 n 个名称。在这种情况下，如果 Readdirnames 返回一个空切片，它将返回一个非 nil 错误来解释原因。在目录的末尾，错误为 io.EOF。
 如果 n <= 0,Readdirnames 将在一个切片中返回该目录中的所有名称。在这种情况下，当 Readdirnames 成功 (读取到目录的末尾) 时，它将返回切片并返回一个非 nil 错误。如果在目录末尾之前遇到错误，Readdirnames 将返回读取到该点之前的名称并返回一个非 nil 错误。
 
+### func (*File) Seek
+```go{1}
+func (f *File) Seek(offset int64, whence int) (ret int64, err error)
+```
+Seek 将文件下次读取或写入的偏移量设置为 offset，并根据 wherece 进行解释：0 表示相对于文件起始位置，1 表示相对于当前偏移量，2 表示相对于文件末尾。它会返回新的偏移量以及错误（如果有）。对于使用 O_APPEND 打开的文件，Seek 的行为尚未指定。
+
+### func (*File) SetDeadline <Badge text="added in go1.10" type="tip" />
+```go{1}
+func (f *File) SetDeadline(t time.Time) error
+```
+SetDeadline 设置文件的读写截止时间。它相当于同时调用 SetReadDeadline 和 SetWriteDeadline。
+只有某些类型的文件支持设置截止时间。对不支持截止时间的文件调用 SetDeadline 将返回 ErrNoDeadline。在大多数系统中，普通文件不支持截止时间，但管道支持。
+截止时间是一个绝对时间，超过该时间后，I/O 操作将失败并返回错误，而不是阻塞。截止时间适用于所有未来和待处理的 I/O，而不仅仅是紧接着的 Read 或 Write 调用。超过截止时间后，可以通过设置未来的截止时间刷新连接。
+如果超过截止时间，调用 Read 或 Write 或其他 I/O 方法将返回一个包装了 ErrDeadlineExceeded 的错误。可以使用 error.Is(err, os.ErrDeadlineExceeded) 进行测试。该错误实现了 Timeout 方法，调用 Timeout 方法将返回 true，但还存在其他可能的错误，即使未超过截止时间，Timeout 也会返回 true。
+可以通过在成功读取或写入调用后反复延长截止时间来实现空闲超时。
+t 的零值表示 I/O 操作不会超时。
+
+### func (*File) Stat <Badge text="可能会经常使用" />
+```go{1}
+func (f *File) Stat() (FileInfo, error)
+```
+Stat 返回描述文件的 FileInfo 结构。如果发生错误，则返回 *PathError 类型。
+
+### func (*File) Sync
+```go{1}
+func (f *File) Sync() error
+```
+Sync会将文件的当前内容提交到稳定存储。通常，这意味着将文件系统内存中最近写入数据的副本刷新到磁盘。
+
+### func (*File) Write <Badge text="重要" />
+```go{1}
+func (f *File) Write(b []byte) (n int, err error)
+```
+Write 将 b 中的 len(b) 个字节写入 File。它返回写入的字节数和错误（如果有）。当 n != len(b) 时，Write 返回非零错误。
+
+### func (*File) WriteAt 
+```go{1}
+func (f *File) WriteAt(b []byte, off int64) (n int, err error)
+```
+WriteAt 从字节偏移量 off 开始向 File 写入 len(b) 个字节。它返回写入的字节数和错误（如果有）。当 n != len(b) 时，WriteAt 返回非零错误。
+
+### func (*File) WriteString
+```go{1}
+func (f *File) WriteString(s string) (n int, err error)
+```
+WriteString 与 Write 类似，但写入字符串 s 的内容而不是字节片段。
+
+## type FileInfo
+FileInfo 描述一个文件并由 Stat 和 Lstat 返回。
+
+### func Lstat
+```go{1}
+func Lstat(name string) (FileInfo, error)
+```
+Lstat 返回一个描述指定文件的 FileInfo 。如果该文件是符号链接，则返回的 FileInfo 描述该符号链接。Lstat 不会尝试跟踪该链接。如果发生错误，则返回 *PathError 类型的错误。
+
+在 Windows 上，如果文件是另一个命名实体（例如符号链接或已安装的文件夹）的替代重解析点，则返回的 FileInfo 会描述重解析点，并且不会尝试解析它。
+
+### func Stat
+```go{1}
+func Stat(name string) (FileInfo, error)
+```
+Stat 返回一个描述指定文件的 FileInfo 对象 。如果发生错误，则返回 *PathError 类型。
+
+## type FileMode
+
+FileMode 表示文件的模式和权限位。这些位在所有系统上具有相同的定义，因此文件信息可以方便地从一个系统移动到另一个系统。并非所有位都适用于所有系统。唯一必需的位是目录的 ModeDir 。
+#### 使用示例
+```go
+package main
+
+import (
+	"fmt"
+	"io/fs"
+	"log"
+	"os"
+)
+
+func main() {
+	fi, err := os.Lstat("some-filename")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("permissions: %#o\n", fi.Mode().Perm()) // 0o400, 0o777, etc.
+	switch mode := fi.Mode(); {
+	case mode.IsRegular():
+		fmt.Println("regular file")
+	case mode.IsDir():
+		fmt.Println("directory")
+	case mode&fs.ModeSymlink != 0:
+		fmt.Println("symbolic link")
+	case mode&fs.ModeNamedPipe != 0:
+		fmt.Println("named pipe")
+	}
+}
+```
+
+
+
 
 
 

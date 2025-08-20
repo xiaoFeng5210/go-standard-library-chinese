@@ -20,6 +20,7 @@ func Example1Server() {
 		}
 
 		file, fileHeader, err := r.FormFile("file")
+		fmt.Printf("fileHeader: %+v\n", fileHeader)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			return
