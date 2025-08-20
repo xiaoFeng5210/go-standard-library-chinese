@@ -5,6 +5,9 @@ export default defineConfig({
   title: "Go标准库中文文档",
   description: "Go标准库中文文档",
   themeConfig: {
+    search: {
+      provider: 'local'
+    },
     // https://vitepress.dev/reference/default-theme-config
     nav: [
       { text: 'Home', link: '/' },

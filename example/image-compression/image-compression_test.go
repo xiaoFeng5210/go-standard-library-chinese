@@ -58,7 +58,6 @@ func TestCompressImage(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to write image data: %v", err)
 	}
-
 	err = writer.Flush()
 	if err != nil {
 		t.Fatalf("Failed to flush writer: %v", err)

@@ -350,6 +350,304 @@ IsPathSeparator 报告 参数c 是否是目录分隔符。
 在 Windows 上，IsPathSeparator 返回 true 当且仅当 c 是 0x2F 或 0x5C。
 在 Unix 上，IsPathSeparator 返回 true 当且仅当 c 是 0x2F。
 
+## func IsPermission
+```go{1}
+func IsPermission(err error) bool
+```
+IsPermission 返回一个布尔值，指示其参数是否已知，以报告权限被拒绝。它满足 ErrPermission 以及一些系统调用错误。
+:::warning
+此函数先于错误。Is。它只支持 os 包返回的错误。新代码应使用错误。Is (err，fs.ErrPermission)。
+:::
+
+## func Mkdir
+```go{1}
+func Mkdir(name string, perm FileMode) error
+```
+Mkdir 创建一个新目录，其中包含指定的名称和权限位 (在 umask 之前)。如果出现错误，将是类型错误。
+
+### 使用示例
+```go
+package main
+
+import (
+	"log"
+	"os"
+)
+
+func main() {
+	err := os.Mkdir("testdir", 0750)
+	if err != nil && !os.IsExist(err) {
+		log.Fatal(err)
+	}
+	err = os.WriteFile("testdir/testfile.txt", []byte("Hello, Gophers!"), 0660)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+```
+
+## func MkdirAll
+```go{1}
+func MkdirAll(path string, perm FileMode) error
+```
+MkdirAll 创建一个名为 path 的目录，以及任何必要的父目录，并返回 nil, 否则返回错误。权限位 perm (在 umask 之前) 用于 MkdirAll 创建的所有目录。如果 path 已经是一个目录，MkdirAll 什么也不做，并返回 nil。
+### 使用示例
+```go
+package main
+
+import (
+	"log"
+	"os"
+)
+
+func main() {
+	err := os.MkdirAll("test/subdir", 0750)
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = os.WriteFile("test/subdir/testfile.txt", []byte("Hello, Gophers!"), 0660)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+```
+
+## func MkdirTemp
+```go{1}
+func MkdirTemp(dir, pattern string) (string, error)
+```
+MkdirTemp 在目录 dir 中创建一个新的临时目录，并返回新目录的路径名。新目录的名称是通过在 pattern 的末尾添加随机字符串来生成的。如果 pattern 包含 “*”, 随机字符串将替换最后一个 “*”。目录是在 0o700 模式下创建的 (在 umask 之前)。如果 dir 是空字符串，MkdirTemp 将使用 TempDir 返回的默认目录来存放临时文件。同时调用 MkdirTemp 的多个程序或 goroutine 不会选择相同的目录。当不再需要该目录时，调用方有责任删除它。
+
+### 使用示例
+```go
+package main
+
+import (
+	"log"
+	"os"
+	"path/filepath"
+)
+
+func main() {
+	dir, err := os.MkdirTemp("", "example")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer os.RemoveAll(dir) // clean up
+
+	file := filepath.Join(dir, "tmpfile")
+	if err := os.WriteFile(file, []byte("content"), 0666); err != nil {
+		log.Fatal(err)
+	}
+}
+```
+
+### 使用示例2
+```go
+package main
+
+import (
+	"log"
+	"os"
+	"path/filepath"
+)
+
+func main() {
+	logsDir, err := os.MkdirTemp("", "*-logs")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer os.RemoveAll(logsDir) // clean up
+
+	// Logs can be cleaned out earlier if needed by searching
+	// for all directories whose suffix ends in *-logs.
+	globPattern := filepath.Join(os.TempDir(), "*-logs")
+	matches, err := filepath.Glob(globPattern)
+	if err != nil {
+		log.Fatalf("Failed to match %q: %v", globPattern, err)
+	}
+
+	for _, match := range matches {
+		if err := os.RemoveAll(match); err != nil {
+			log.Printf("Failed to remove %q: %v", match, err)
+		}
+	}
+}
+
+```
+
+
+## func Pipe
+```go{1}
+func Pipe() (r *File, w *File, err error)
+```
+管道返回一对连接的 Files; 从 r 读取返回写入 w 的字节。它返回文件和一个错误 (如果有的话)。
+
+
+## func ReadFile <Badge text="重要" />
+```go{1}
+func ReadFile(name string) ([]byte, error)
+```
+ReadFile 读取命名文件并返回其内容。成功的调用返回 err == nil, 而不是 err == EOF。由于 ReadFile 读取整个文件，它不会将来自 Read 的 EOF 视为要报告的错误。
+
+### 使用示例
+```go
+package main
+
+import (
+	"log"
+	"os"
+)
+
+func main() {
+	data, err := os.ReadFile("testdata/hello")
+	if err != nil {
+		log.Fatal(err)
+	}
+	os.Stdout.Write(data)
+
+}
+```
+
+```go
+Hello, Gophers!
+```
+
+## func Readlink
+```go{1}
+func Readlink(name string) (string, error)
+```
+Readlink 返回命名符号链接的目的地。如果出现错误，则类型为 * PathError。如果链接目的地是相对的，Readlink 将返回相对路径，而不会将其解析为绝对路径。
+
+### 使用示例
+```go
+package main
+
+import (
+	"errors"
+	"fmt"
+	"log"
+	"os"
+	"path/filepath"
+)
+
+func main() {
+	// First, we create a relative symlink to a file.
+	d, err := os.MkdirTemp("", "")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer os.RemoveAll(d)
+	targetPath := filepath.Join(d, "hello.txt")
+	if err := os.WriteFile(targetPath, []byte("Hello, Gophers!"), 0644); err != nil {
+		log.Fatal(err)
+	}
+	linkPath := filepath.Join(d, "hello.link")
+	if err := os.Symlink("hello.txt", filepath.Join(d, "hello.link")); err != nil {
+		if errors.Is(err, errors.ErrUnsupported) {
+			// Allow the example to run on platforms that do not support symbolic links.
+			fmt.Printf("%s links to %s\n", filepath.Base(linkPath), "hello.txt")
+			return
+		}
+		log.Fatal(err)
+	}
+
+	// Readlink returns the relative path as passed to os.Symlink.
+	dst, err := os.Readlink(linkPath)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("%s links to %s\n", filepath.Base(linkPath), dst)
+
+	var dstAbs string
+	if filepath.IsAbs(dst) {
+		dstAbs = dst
+	} else {
+		// Symlink targets are relative to the directory containing the link.
+		dstAbs = filepath.Join(filepath.Dir(linkPath), dst)
+	}
+
+	// Check that the target is correct by comparing it with os.Stat
+	// on the original target path.
+	dstInfo, err := os.Stat(dstAbs)
+	if err != nil {
+		log.Fatal(err)
+	}
+	targetInfo, err := os.Stat(targetPath)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if !os.SameFile(dstInfo, targetInfo) {
+		log.Fatalf("link destination (%s) is not the same file as %s", dstAbs, targetPath)
+	}
+
+}
+```
+
+```go
+hello.link links to hello.txt
+```
+
+## func Remove  <Badge text="重要" />
+```go{1}
+func Remove(name string) error
+```
+Remove 会删除命名文件或 (空) 目录。如果出现错误，则类型为 * PathError。
+
+### 使用示例
+```go
+package main
+
+import (
+	"log"
+	"os"
+)
+
+func main() {
+	err := os.Remove("testfile")
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+```
+
+## func RemoveAll <Badge text="重要" />
+```go{1}
+func RemoveAll(path string) error
+```
+RemoveAll 删除 path 及其所有子目录。它递归地删除所有非符号链接文件。如果出现错误，则类型为 * PathError。
+### 使用示例
+```go
+package main
+
+import (
+	"log"
+	"os"
+)
+
+func main() {
+	err := os.RemoveAll(path)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
