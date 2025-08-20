@@ -638,6 +638,326 @@ func main() {
 }
 ```
 
+## func Rename
+```go{1}
+func Rename(oldpath, newpath string) error
+```
+Rename 将 oldpath 重命名 (移动) 到 newpath。**如果 newpath 已经存在且不是目录，Rename 会替换它。如果 newpath 已经存在且是目录，Rename 会返回一个错误**。当 oldpath 和 newpath 位于不同的目录时，可能会适用特定于操作系统的限制。即使在同一目录内，在非 Unix 平台上，Rename 也不是一个原子操作。如果出现错误，它将是 * LinkError 类型。
+
+
+## func SameFile
+```go{1}
+func SameFile(fi1, fi2 FileInfo) bool
+```
+SameFile 报告 fi1 和 fi2 是否描述的是同一个文件。例如，在 Unix 上，这意味着两个底层结构的设备和 inode 字段相同；在其他系统上，则可能基于路径名来判断。SameFile 仅适用于此包的 Stat 返回的结果。在其他情况下，它会返回 false。
+
+## func Setenv
+```go{1}
+func Setenv(key, value string) error
+```
+Setenv 设置由键指定的环境变量的值。如果出现错误，则返回错误。
+
+## func Unsetenv
+```go{1}
+func Unsetenv(key string) error
+```
+Unsetenv 取消设置单个环境变量。
+
+#### 使用示例
+```go
+package main
+
+import (
+	"os"
+)
+
+func main() {
+	os.Setenv("TMPDIR", "/my/tmp")
+	defer os.Unsetenv("TMPDIR")
+}
+
+```
+
+## func Symlink
+```go{1}
+func Symlink(oldname, newname string) error
+```
+符号链接会将 newname 创建为指向 oldname 的符号链接。在 Windows 上，指向不存在的 oldname 的符号链接会创建文件符号链接；如果 oldname 之后被创建为目录，则该符号链接将不起作用。如果发生错误，错误类型为 *LinkError。
+
+## func WriteFile <Badge text="重要" />
+```go{1}
+func WriteFile(name string, data []byte, perm FileMode) error
+```
+WriteFile 将数据写入指定文件，并在必要时创建该文件。如果文件不存在，WriteFile 将使用 perm 权限（umask 之前）创建该文件；否则，WriteFile 会在写入前截断文件，且不更改权限。由于 WriteFile 需要多个系统调用才能完成，因此操作过程中的故障可能会导致文件处于部分写入状态。
+
+#### 使用示例
+```go
+package main
+
+import (
+	"log"
+	"os"
+)
+
+func main() {
+	err := os.WriteFile("testdata/hello", []byte("Hello, Gophers!"), 0666)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+```
+
+## func ReadDir
+```go{1}
+func ReadDir(name string) ([]DirEntry, error)
+```
+ReadDir 读取指定目录，并返回按文件名排序的所有目录条目。如果读取目录时发生错误，ReadDir 将返回错误发生前能够读取的条目以及错误本身。
+### 使用示例
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+	"os"
+)
+
+func main() {
+	files, err := os.ReadDir(".")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for _, file := range files {
+		fmt.Println(file.Name())
+	}
+}
+```
+
+
+## func Create
+```go{1}
+func Create(name string) (*File, error)
+```
+Create 函数用于创建或截断指定的文件。如果文件已存在，则截断该文件。如果文件不存在，则使用 0o666 模式（umask 之前）创建该文件。如果成功，则返回的 File 上的方法可用于 I/O；关联的文件描述符的模式为 O_RDWR 。包含该文件的目录必须已存在。如果发生错误，错误类型为 *PathError 。
+
+#### 使用示例
+```go
+package main
+
+import (
+	"log"
+	"os"
+)
+
+func main() {
+	f, err := os.Create("testfile")
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+```
+
+## func CreateTemp <Badge text="added in go1.16" type="tip" />
+```go{1}
+func CreateTemp(dir, pattern string) (*File, error)
+```
+CreateTemp 在目录 dir 中创建一个新的临时文件，打开该文件进行读写操作，并返回结果文件。文件名由模式 pattern 和在末尾添加随机字符串生成。如果模式 pattern 包含“*”，则随机字符串将替换最后一个“*”。文件创建时采用模式 0o600（umask 之前）。如果 dir 为空字符串，CreateTemp 将使用 TempDir 返回的默认临时文件目录。多个程序或 goroutine 同时调用 CreateTemp 不会选择同一个文件。调用者可以使用文件的 Name 方法查找文件的路径名。当文件不再需要时，调用者有责任删除该文件。
+### 使用示例
+```go
+package main
+
+import (
+	"log"
+	"os"
+)
+
+func main() {
+	f, err := os.CreateTemp("", "example")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer os.Remove(f.Name()) // clean up
+
+	if _, err := f.Write([]byte("content")); err != nil {
+		log.Fatal(err)
+	}
+	if err := f.Close(); err != nil {
+		log.Fatal(err)
+	}
+}
+```
+
+## func NewFile
+```go{1}
+func NewFile(fd uintptr, name string) *File
+```
+NewFile 返回一个新文件，其中包含给定的文件描述符和名称。如果 fd 不是有效的文件描述符，则返回值为 nil。
+NewFile 的行为在某些平台上有所不同：
+在 Unix 上，如果 fd 处于非阻塞模式，NewFile 将尝试返回一个可轮询文件。
+在 Windows 上，如果 fd 为异步 I/O 打开 (即，在 syscall.CreateFile 调用中指定了 syscall.FILE_FLAG_OVERLAPPED),NewFile 将尝试通过将 fd 与 Go 运行时 I/O 完成端口关联来返回一个可轮询文件。如果关联失败，I/O 操作将同步执行。
+只有可轮询文件支持 File.SetDeadline、File.SetReadDeadline 和 File.SetWriteDeadline。
+将其传递给 NewFile 后，在 File.Fd 的注释中描述的相同条件下，fd 可能会变得无效，并适用相同的约束。
+
+
+## func Open
+```go{1}
+func Open(name string) (*File, error)
+```
+Open 打开指定文件进行读取。如果成功，则可以使用返回文件上的方法进行读取；关联的文件描述符的模式为 O_RDONLY 。如果发生错误，则返回 *PathError 类型错误。
+
+
+## func OpenFile
+```go{1}
+func OpenFile(name string, flag int, perm FileMode) (*File, error)
+```
+OpenFile 是通用的打开调用；大多数用户会改用 Open 或 Create。它使用指定的标志（例如 O_RDONLY ）打开指定的文件。如果文件不存在，且传递了 O_CREATE 标志，则以 perm 模式（在 umask 之前）创建该文件；文件所在的目录必须存在。如果成功，则返回的 File 上的方法可用于 I/O。如果发生错误，则返回 *PathError 类型的错误。
+#### 使用示例
+```go
+package main
+
+import (
+	"log"
+	"os"
+)
+
+func main() {
+	f, err := os.OpenFile("notes.txt", os.O_RDWR|os.O_CREATE, 0644)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if err := f.Close(); err != nil {
+		log.Fatal(err)
+	}
+}
+```
+
+```go
+package main
+
+import (
+	"log"
+	"os"
+)
+
+func main() {
+	// If the file doesn't exist, create it, or append to the file
+	f, err := os.OpenFile("access.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if _, err := f.Write([]byte("appended some data\n")); err != nil {
+		f.Close() // ignore error; Write error takes precedence
+		log.Fatal(err)
+	}
+	if err := f.Close(); err != nil {
+		log.Fatal(err)
+	}
+}
+```
+
+
+## func OpenInRoot <Badge text="added in go1.24.0" type="tip" />
+```go{1}
+func OpenInRoot(dir, name string) (*File, error)
+```
+OpenInRoot 在 dir 目录中打开文件名。它等效于 OpenRoot (dir), 后跟在根目录中打开文件。
+如果名称的任何组件引用 dir 以外的位置，OpenInRoot 将返回一个错误。
+有关详细信息和限制，请参阅根目录。
+
+## Type File
+
+
+### func (*File) Chdir 
+```go{1}
+func (f *File) Chdir() error
+```
+Chdir 将当前工作目录更改为 f 指向的目录。如果 f 是 nil，则 Chdir 将返回一个错误。
+
+### func (*File) Chmod
+```go{1}
+func (f *File) Chmod(mode FileMode) error
+```
+chmod 将文件的模式更改为 mode。如果发生错误，则错误类型为 *PathError 。
+
+### func (*File) Chown
+```go{1}
+func (f *File) Chown(uid, gid int) error
+```
+Chown 将文件的所有者 (uid) 和组 (gid) 更改为 uid 和 gid。如果发生错误，则错误类型为 *PathError 。
+
+### func (*File) Close
+```go{1}
+func (f *File) Close() error
+```
+Close 会关闭 File ，使其无法进行 I/O 操作。对于支持 File.SetDeadline 的文件，任何待处理的 I/O 操作都将被取消并立即返回 ErrClosed 错误。如果 Close 已被调用，则会返回错误。
+
+### func (*File) Fd
+```go{1}
+func (f *File) Fd() uintptr
+```
+Fd 返回系统文件描述符或引用打开文件的句柄。如果 f 被关闭，描述符将变得无效。如果 f 被垃圾回收，终结器可能会关闭描述符，使其无效；有关何时可能运行终结器的详细信息，请参阅运行时.SetFinalizer。
+不要关闭返回的描述符，这可能会导致 f 稍后关闭一个不相关的描述符。
+Fd 的行为在某些平台上有所不同：
+在 Unix 和 Windows 上，File.SetDeadline 方法将停止工作。
+在 Windows 上，如果文件上没有并发 I/O 操作，文件描述符将与 Go 运行时 I/O 完成端口解除关联。
+对于大多数用途，首选 f.SyscallConn 方法。
+
+
+### func (*File) Name
+```go{1}
+func (f *File) Name() string
+```
+返回打开时显示的文件的名称
+
+### func (*File) Read <Badge text="重要" />
+```go{1}
+func (f *File) Read(b []byte) (n int, err error)
+```
+Read 从 File 读取最多 len(b) 个字节并将其存储在 b 中。它返回读取的字节数以及遇到的任何错误。到达文件末尾时，Read 返回 0，即 io.EOF。
+
+### func (*File) ReadAt
+```go{1}
+func (f *File) ReadAt(b []byte, off int64) (n int, err error)
+```
+ReadAt 从文件偏移量 off 处开始读取 len(b) 个字节。它返回读取的字节数和错误（如果有）。当 n < len(b) 时，ReadAt 始终返回非零错误。到达文件末尾时，该错误为 io.EOF。
+
+### func (*File) ReadDir <Badge text="added in go1.16" type="tip" />
+```go{1}
+func (f *File) ReadDir(n int) ([]DirEntry, error)
+```
+ReadDir 读取与文件 f 关联的目录的内容，并按目录顺序返回 DirEntry 值的切片。后续对同一文件的调用将在目录中产生后续的 DirEntry 记录。
+如果 n > 0,ReadDir 最多返回 n 条 DirEntry 记录。在这种情况下，如果 ReadDir 返回一个空切片，它将返回一个错误来解释原因。在目录的末尾，错误为 io.EOF。
+如果 n <= 0,ReadDir 将返回目录中剩余的所有 DirEntry 记录。当它成功时，它将返回一个 nil 错误 (而不是 io.EOF)。
+
+### func (*File) ReadFrom <Badge text="added in go1.15" type="tip" />
+```go{1}
+func (f *File) ReadFrom(r io.Reader) (n int64, err error)
+```
+ReadFrom 实现了 io.ReaderFrom。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
