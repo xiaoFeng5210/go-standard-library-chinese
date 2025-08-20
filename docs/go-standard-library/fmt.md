@@ -1,7 +1,6 @@
 ---
 layout: doc
 title: fmt
-outline: [2, 3] 
 ---
 
 # fmt

@@ -9,7 +9,7 @@ hero:
   actions:
     - theme: brand
       text: 开始阅读
-      link: /go-standard-library.md
+      link: /go-standard-library/
     - theme: alt
       text: 贡献翻译
       link: /contributing/

@@ -10,27 +10,33 @@ export default defineConfig({
     },
     // https://vitepress.dev/reference/default-theme-config
     nav: [
-      { text: 'document', link: '/go-standard-library.md' },
+      { text: 'document', link: '/go-standard-library/' },
     ],
 
-    sidebar: [
-      {
-        text: '常用标准库',
-        collapsed: false,
-        items: [
-          {
-            text: 'fmt', link: '/go-standard-library/fmt.md',
-          },
-          { text: 'log', link: '/go-standard-library/log.md' },
-          { text: 'os', link: '/go-standard-library/os.md' },
-          { text: 'path', link: '/go-standard-library/path.md' },
-          { text: 'runtime', link: '/go-standard-library/runtime.md' },
-          { text: 'strings', link: '/go-standard-library/strings.md' },
-          { text: 'time', link: '/go-standard-library/time.md' },
-          { text: 'unicode', link: '/go-standard-library/unicode.md' }
-        ]
-      }
-    ],
+    outline: {
+      label: '大纲',
+      level: [2, 3],
+    },
+
+    sidebar: {
+      '/go-standard-library/': [
+        {
+          text: '常用标准库',
+          collapsed: false,
+          items: [
+            { text: 'os', link: '/go-standard-library/os.md' },
+            {
+              text: 'fmt', link: '/go-standard-library/fmt.md',
+            },
+            { text: 'log', link: '/go-standard-library/log.md' },
+            { text: 'path', link: '/go-standard-library/path.md' },
+            { text: 'runtime', link: '/go-standard-library/runtime.md' },
+            { text: 'strings', link: '/go-standard-library/strings.md' },
+            { text: 'time', link: '/go-standard-library/time.md' },
+          ]
+        }
+      ],
+    },
 
     socialLinks: [
       { icon: 'github', link: 'https://github.com/vuejs/vitepress' }
