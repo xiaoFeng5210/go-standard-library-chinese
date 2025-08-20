@@ -370,7 +370,7 @@ func Mkdir(name string, perm FileMode) error
 ```
 Mkdir 创建一个新目录，其中包含指定的名称和权限位 (在 umask 之前)。如果出现错误，将是类型错误。
 
-### 使用示例
+#### 使用示例
 ```go
 package main
 
@@ -396,7 +396,7 @@ func main() {
 func MkdirAll(path string, perm FileMode) error
 ```
 MkdirAll 创建一个名为 path 的目录，以及任何必要的父目录，并返回 nil, 否则返回错误。权限位 perm (在 umask 之前) 用于 MkdirAll 创建的所有目录。如果 path 已经是一个目录，MkdirAll 什么也不做，并返回 nil。
-### 使用示例
+#### 使用示例
 ```go
 package main
 
@@ -423,7 +423,7 @@ func MkdirTemp(dir, pattern string) (string, error)
 ```
 MkdirTemp 在目录 dir 中创建一个新的临时目录，并返回新目录的路径名。新目录的名称是通过在 pattern 的末尾添加随机字符串来生成的。如果 pattern 包含 “*”, 随机字符串将替换最后一个 “*”。目录是在 0o700 模式下创建的 (在 umask 之前)。如果 dir 是空字符串，MkdirTemp 将使用 TempDir 返回的默认目录来存放临时文件。同时调用 MkdirTemp 的多个程序或 goroutine 不会选择相同的目录。当不再需要该目录时，调用方有责任删除它。
 
-### 使用示例
+#### 使用示例
 ```go
 package main
 
@@ -447,7 +447,7 @@ func main() {
 }
 ```
 
-### 使用示例2
+#### 使用示例2
 ```go
 package main
 
@@ -495,7 +495,7 @@ func ReadFile(name string) ([]byte, error)
 ```
 ReadFile 读取命名文件并返回其内容。成功的调用返回 err == nil, 而不是 err == EOF。由于 ReadFile 读取整个文件，它不会将来自 Read 的 EOF 视为要报告的错误。
 
-### 使用示例
+#### 使用示例
 ```go
 package main
 
@@ -524,7 +524,7 @@ func Readlink(name string) (string, error)
 ```
 Readlink 返回命名符号链接的目的地。如果出现错误，则类型为 * PathError。如果链接目的地是相对的，Readlink 将返回相对路径，而不会将其解析为绝对路径。
 
-### 使用示例
+#### 使用示例
 ```go
 package main
 
@@ -599,7 +599,7 @@ func Remove(name string) error
 ```
 Remove 会删除命名文件或 (空) 目录。如果出现错误，则类型为 * PathError。
 
-### 使用示例
+#### 使用示例
 ```go
 package main
 
@@ -621,7 +621,7 @@ func main() {
 func RemoveAll(path string) error
 ```
 RemoveAll 删除 path 及其所有子目录。它递归地删除所有非符号链接文件。如果出现错误，则类型为 * PathError。
-### 使用示例
+#### 使用示例
 ```go
 package main
 
@@ -712,7 +712,7 @@ func main() {
 func ReadDir(name string) ([]DirEntry, error)
 ```
 ReadDir 读取指定目录，并返回按文件名排序的所有目录条目。如果读取目录时发生错误，ReadDir 将返回错误发生前能够读取的条目以及错误本身。
-### 使用示例
+#### 使用示例
 ```go
 package main
 
@@ -763,7 +763,7 @@ func main() {
 func CreateTemp(dir, pattern string) (*File, error)
 ```
 CreateTemp 在目录 dir 中创建一个新的临时文件，打开该文件进行读写操作，并返回结果文件。文件名由模式 pattern 和在末尾添加随机字符串生成。如果模式 pattern 包含“*”，则随机字符串将替换最后一个“*”。文件创建时采用模式 0o600（umask 之前）。如果 dir 为空字符串，CreateTemp 将使用 TempDir 返回的默认临时文件目录。多个程序或 goroutine 同时调用 CreateTemp 不会选择同一个文件。调用者可以使用文件的 Name 方法查找文件的路径名。当文件不再需要时，调用者有责任删除该文件。
-### 使用示例
+#### 使用示例
 ```go
 package main
 
@@ -812,7 +812,7 @@ Open 打开指定文件进行读取。如果成功，则可以使用返回文件
 func OpenFile(name string, flag int, perm FileMode) (*File, error)
 ```
 OpenFile 是通用的打开调用；大多数用户会改用 Open 或 Create。它使用指定的标志（例如 O_RDONLY ）打开指定的文件。如果文件不存在，且传递了 O_CREATE 标志，则以 perm 模式（在 umask 之前）创建该文件；文件所在的目录必须存在。如果成功，则返回的 File 上的方法可用于 I/O。如果发生错误，则返回 *PathError 类型的错误。
-#### 使用示例
+#### 使用示例1
 ```go
 package main
 
