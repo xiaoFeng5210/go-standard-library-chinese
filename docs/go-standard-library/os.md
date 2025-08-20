@@ -937,6 +937,24 @@ func (f *File) ReadFrom(r io.Reader) (n int64, err error)
 ReadFrom 实现了 io.ReaderFrom。
 
 
+### func (*File) Readdir
+```go{1}
+func (f *File) Readdir(n int) ([]FileInfo, error)
+```
+Readdir 读取与 file 关联的目录的内容，并返回一个最多包含 n 个 FileInfo 值的切片，这将由 Lstat 按目录顺序返回。随后对同一文件的调用将产生更多的 FileInfo。
+如果 n > 0,Readdir 最多返回 n 个 FileInfo 结构。在这种情况下，如果 Readdir 返回一个空切片，它将返回一个非 nil 错误来解释原因。在目录的末尾，错误为 io.EOF。
+如果 n <= 0,Readdir 将在一个切片中返回目录中的所有 FileInfo。在这种情况下，如果 Readir 成功 (读取到目录的末尾), 它将返回切片并返回一个 nil 错误。如果在目录末尾之前遇到错误，Readdir 将返回 FileInfo 读取到那一点并返回一个非 nil 错误。
+大多数客户端都使用更高效的 ReadDir 方法提供更好的服务。
+
+### func (*File) Readdirnames
+```go{1}
+func (f *File) Readdirnames(n int) (names []string, err error)
+```
+Readdirnames 读取与 file 关联的目录的内容，并按目录顺序返回目录中最多 n 个文件名的切片。后续对同一文件的调用将产生更多的名称。
+如果 n > 0,Readdirnames 最多返回 n 个名称。在这种情况下，如果 Readdirnames 返回一个空切片，它将返回一个非 nil 错误来解释原因。在目录的末尾，错误为 io.EOF。
+如果 n <= 0,Readdirnames 将在一个切片中返回该目录中的所有名称。在这种情况下，当 Readdirnames 成功 (读取到目录的末尾) 时，它将返回切片并返回一个非 nil 错误。如果在目录末尾之前遇到错误，Readdirnames 将返回读取到该点之前的名称并返回一个非 nil 错误。
+
+
 
 
 
