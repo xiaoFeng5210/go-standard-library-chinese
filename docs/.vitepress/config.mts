@@ -24,10 +24,14 @@ export default defineConfig({
           text: '常用标准库',
           collapsed: false,
           items: [
-            { text: 'os', link: '/go-standard-library/os.md' },
             {
               text: 'fmt', link: '/go-standard-library/fmt.md',
             },
+            {
+              text: 'io', link: '/go-standard-library/io.md',
+            },
+            { text: 'os', link: '/go-standard-library/os.md' },
+
             { text: 'log', link: '/go-standard-library/log.md' },
             { text: 'path', link: '/go-standard-library/path.md' },
             { text: 'runtime', link: '/go-standard-library/runtime.md' },
