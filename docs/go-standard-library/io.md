@@ -105,7 +105,7 @@ func main() {
 
 }
 ```
-```output
+```text
 some
 ```
 
@@ -143,7 +143,7 @@ func main() {
 
 }
 ```
-```output
+```text
 some io.Reader stream to be read
 ```
 
@@ -175,14 +175,116 @@ func main() {
 
 }
 ```
-```output
+```text
 Go is a general-purpose language designed with systems programming in mind.
 ```
 
 ## func ReadAtLeast
+```go{1}
+func ReadAtLeast(r Reader, buf []byte, min int) (n int, err error)
+```
+ReadAtLeast 从 r 读取到 buf 中，直到至少读取 min 个字节。它返回复制的字节数，如果读取的字节数少于 min 个字节，则返回错误。仅当未读取任何字节时，错误才为 EOF。如果在读取少于 min 个字节后发生 EOF，ReadAtLeast 将返回 ErrUnexpectedEOF 。如果 min 大于 buf 的长度，ReadAtLeast 将返回 ErrShortBuffer 。返回时，当且仅当 err == nil 时，n >= min。如果 r 在读取至少 min 个字节后返回错误，则该错误将被丢弃。
+
+```go
+package main
+
+import (
+	"fmt"
+	"io"
+	"log"
+	"strings"
+)
+
+func main() {
+	r := strings.NewReader("some io.Reader stream to be read\n")
+
+	buf := make([]byte, 14)
+	if _, err := io.ReadAtLeast(r, buf, 4); err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("%s\n", buf)
+
+	// buffer smaller than minimal read size.
+	shortBuf := make([]byte, 3)
+	if _, err := io.ReadAtLeast(r, shortBuf, 4); err != nil {
+		fmt.Println("error:", err)
+	}
+
+	// minimal read size bigger than io.Reader stream
+	longBuf := make([]byte, 64)
+	if _, err := io.ReadAtLeast(r, longBuf, 64); err != nil {
+		fmt.Println("error:", err)
+	}
+}
+```
+
+```text
+some io.Reader
+error: short buffer
+error: unexpected EOF
+```
+
+## func ReadFull
+```go{1}
+func ReadFull(r Reader, buf []byte) (n int, err error)
+```
+ReadFull 从 r 读取恰好 len(buf) 个字节到 buf 中。它返回复制的字节数，如果读取的字节数少于此值，则返回错误。仅当未读取任何字节时，错误才会是 EOF。如果在读取部分字节（而非全部字节）后发生 EOF，ReadFull 将返回 ErrUnexpectedEOF 。返回时，当且仅当 err == nil 时，n == len(buf)。如果 r 在读取至少 len(buf) 个字节后返回错误，则该错误将被丢弃。
+
+```go
+package main
+
+import (
+	"fmt"
+	"io"
+	"log"
+	"strings"
+)
+
+func main() {
+	r := strings.NewReader("some io.Reader stream to be read\n")
+
+	buf := make([]byte, 4)
+	if _, err := io.ReadFull(r, buf); err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("%s\n", buf)
+
+	// minimal read size bigger than io.Reader stream
+	longBuf := make([]byte, 64)
+	if _, err := io.ReadFull(r, longBuf); err != nil {
+		fmt.Println("error:", err)
+	}
+
+}
+```
+```text
+some
+error: unexpected EOF
+```
+
+## func WriteString
+```go{1}
+func WriteString(w Writer, s string) (n int, err error)
+```
+WriteString 将 s 写入 w 中。它返回复制的字节数，以及写入过程中遇到的第一个错误。
 
 
+```go
+package main
 
+import (
+	"io"
+	"log"
+	"os"
+)
 
+func main() {
+	if _, err := io.WriteString(os.Stdout, "Hello World"); err != nil {
+		log.Fatal(err)
+	}
 
-
+}
+```
+```text
+Hello World
+```
