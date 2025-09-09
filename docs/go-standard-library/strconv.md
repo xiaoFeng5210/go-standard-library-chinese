@@ -72,7 +72,6 @@ func main() {
 	if s, err := strconv.Atoi(v); err == nil {
 		fmt.Printf("%T, %v", s, s)
 	}
-
 }
 ```
 ```text
