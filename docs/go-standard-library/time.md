@@ -323,9 +323,322 @@ day = 1
 ```go
 func (t Time) Day() int
 ```
-Day 返回 t 是一周中的哪一天。
+Day 返回 t 指定的月份中的日期。
 ```go
+package main
+
+import (
+	"fmt"
+	"time"
+)
+
+func main() {
+	d := time.Date(2000, 2, 1, 12, 30, 0, 0, time.UTC)
+	day := d.Day()
+
+	fmt.Printf("day = %v\n", day)
+
+}
+
 ```
+```text
+day = 1
+```
+
+### func (Time) Equal
+```go
+func (t Time) Equal(u Time) bool
+```
+Equal 函数用于报告 t 和 u 是否代表同一时刻。即使两个时间位于不同位置，它们也可能相等。例如，6:00 +0200 和 4:00 UTC 是相等的。请参阅 Time 类型的文档，了解在 Time 值中使用 == 的陷阱；大多数代码应该使用 Equal 函数。
+```go
+package main
+
+import (
+	"fmt"
+	"time"
+)
+
+func main() {
+	secondsEastOfUTC := int((8 * time.Hour).Seconds())
+	beijing := time.FixedZone("Beijing Time", secondsEastOfUTC)
+
+	// Unlike the equal operator, Equal is aware that d1 and d2 are the
+	// same instant but in different time zones.
+	d1 := time.Date(2000, 2, 1, 12, 30, 0, 0, time.UTC)
+	d2 := time.Date(2000, 2, 1, 20, 30, 0, 0, beijing)
+
+	datesEqualUsingEqualOperator := d1 == d2
+	datesEqualUsingFunction := d1.Equal(d2)
+
+	fmt.Printf("datesEqualUsingEqualOperator = %v\n", datesEqualUsingEqualOperator)
+	fmt.Printf("datesEqualUsingFunction = %v\n", datesEqualUsingFunction)
+}
+```
+```text
+datesEqualUsingEqualOperator = false
+datesEqualUsingFunction = true
+```
+
+### func (Time) Format
+```go
+func (t Time) Format(layout string) string
+```
+Format 将 t 转换为字符串，根据 layout 指定的格式。
+```go
+package main
+
+import (
+	"fmt"
+	"time"
+)
+
+func main() {
+	// Parse a time value from a string in the standard Unix format.
+	t, err := time.Parse(time.UnixDate, "Wed Feb 25 11:06:39 PST 2015")
+	if err != nil { // Always check errors even if they should not happen.
+		panic(err)
+	}
+
+	tz, err := time.LoadLocation("Asia/Shanghai")
+	if err != nil { // Always check errors even if they should not happen.
+		panic(err)
+	}
+
+	// time.Time's Stringer method is useful without any format.
+	fmt.Println("default format:", t)
+
+	// Predefined constants in the package implement common layouts.
+	fmt.Println("Unix format:", t.Format(time.UnixDate))
+
+	// The time zone attached to the time value affects its output.
+	fmt.Println("Same, in UTC:", t.UTC().Format(time.UnixDate))
+
+	fmt.Println("in Shanghai with seconds:", t.In(tz).Format("2006-01-02T15:04:05 -070000"))
+
+	fmt.Println("in Shanghai with colon seconds:", t.In(tz).Format("2006-01-02T15:04:05 -07:00:00"))
+
+	// The rest of this function demonstrates the properties of the
+	// layout string used in the format.
+
+	// The layout string used by the Parse function and Format method
+	// shows by example how the reference time should be represented.
+	// We stress that one must show how the reference time is formatted,
+	// not a time of the user's choosing. Thus each layout string is a
+	// representation of the time stamp,
+	//	Jan 2 15:04:05 2006 MST
+	// An easy way to remember this value is that it holds, when presented
+	// in this order, the values (lined up with the elements above):
+	//	  1 2  3  4  5    6  -7
+	// There are some wrinkles illustrated below.
+
+	// Most uses of Format and Parse use constant layout strings such as
+	// the ones defined in this package, but the interface is flexible,
+	// as these examples show.
+
+	// Define a helper function to make the examples' output look nice.
+	do := func(name, layout, want string) {
+		got := t.Format(layout)
+		if want != got {
+			fmt.Printf("error: for %q got %q; expected %q\n", layout, got, want)
+			return
+		}
+		fmt.Printf("%-16s %q gives %q\n", name, layout, got)
+	}
+
+	// Print a header in our output.
+	fmt.Printf("\nFormats:\n\n")
+
+	// Simple starter examples.
+	do("Basic full date", "Mon Jan 2 15:04:05 MST 2006", "Wed Feb 25 11:06:39 PST 2015")
+	do("Basic short date", "2006/01/02", "2015/02/25")
+
+	// The hour of the reference time is 15, or 3PM. The layout can express
+	// it either way, and since our value is the morning we should see it as
+	// an AM time. We show both in one format string. Lower case too.
+	do("AM/PM", "3PM==3pm==15h", "11AM==11am==11h")
+
+	// When parsing, if the seconds value is followed by a decimal point
+	// and some digits, that is taken as a fraction of a second even if
+	// the layout string does not represent the fractional second.
+	// Here we add a fractional second to our time value used above.
+	t, err = time.Parse(time.UnixDate, "Wed Feb 25 11:06:39.1234 PST 2015")
+	if err != nil {
+		panic(err)
+	}
+	// It does not appear in the output if the layout string does not contain
+	// a representation of the fractional second.
+	do("No fraction", time.UnixDate, "Wed Feb 25 11:06:39 PST 2015")
+
+	// Fractional seconds can be printed by adding a run of 0s or 9s after
+	// a decimal point in the seconds value in the layout string.
+	// If the layout digits are 0s, the fractional second is of the specified
+	// width. Note that the output has a trailing zero.
+	do("0s for fraction", "15:04:05.00000", "11:06:39.12340")
+
+	// If the fraction in the layout is 9s, trailing zeros are dropped.
+	do("9s for fraction", "15:04:05.99999999", "11:06:39.1234")
+
+}
+
+```
+```text
+default format: 2015-02-25 11:06:39 -0800 PST
+Unix format: Wed Feb 25 11:06:39 PST 2015
+Same, in UTC: Wed Feb 25 19:06:39 UTC 2015
+in Shanghai with seconds: 2015-02-26T03:06:39 +080000
+in Shanghai with colon seconds: 2015-02-26T03:06:39 +08:00:00
+
+Formats:
+
+Basic full date  "Mon Jan 2 15:04:05 MST 2006" gives "Wed Feb 25 11:06:39 PST 2015"
+Basic short date "2006/01/02" gives "2015/02/25"
+AM/PM            "3PM==3pm==15h" gives "11AM==11am==11h"
+No fraction      "Mon Jan _2 15:04:05 MST 2006" gives "Wed Feb 25 11:06:39 PST 2015"
+0s for fraction  "15:04:05.00000" gives "11:06:39.12340"
+9s for fraction  "15:04:05.99999999" gives "11:06:39.1234"
+```
+
+```go
+package main
+
+import (
+	"fmt"
+	"time"
+)
+
+func main() {
+	// Parse a time value from a string in the standard Unix format.
+	t, err := time.Parse(time.UnixDate, "Sat Mar 7 11:06:39 PST 2015")
+	if err != nil { // Always check errors even if they should not happen.
+		panic(err)
+	}
+
+	// Define a helper function to make the examples' output look nice.
+	do := func(name, layout, want string) {
+		got := t.Format(layout)
+		if want != got {
+			fmt.Printf("error: for %q got %q; expected %q\n", layout, got, want)
+			return
+		}
+		fmt.Printf("%-16s %q gives %q\n", name, layout, got)
+	}
+
+	// The predefined constant Unix uses an underscore to pad the day.
+	do("Unix", time.UnixDate, "Sat Mar  7 11:06:39 PST 2015")
+
+	// For fixed-width printing of values, such as the date, that may be one or
+	// two characters (7 vs. 07), use an _ instead of a space in the layout string.
+	// Here we print just the day, which is 2 in our layout string and 7 in our
+	// value.
+	do("No pad", "<2>", "<7>")
+
+	// An underscore represents a space pad, if the date only has one digit.
+	do("Spaces", "<_2>", "< 7>")
+
+	// A "0" indicates zero padding for single-digit values.
+	do("Zeros", "<02>", "<07>")
+
+	// If the value is already the right width, padding is not used.
+	// For instance, the second (05 in the reference time) in our value is 39,
+	// so it doesn't need padding, but the minutes (04, 06) does.
+	do("Suppressed pad", "04:05", "06:39")
+
+}
+```
+```text
+Unix             "Mon Jan _2 15:04:05 MST 2006" gives "Sat Mar  7 11:06:39 PST 2015"
+No pad           "<2>" gives "<7>"
+Spaces           "<_2>" gives "< 7>"
+Zeros            "<02>" gives "<07>"
+Suppressed pad   "04:05" gives "06:39"
+```
+
+### func (Time) GoString
+```go
+func (t Time) GoString() string
+```
+GoString 实现了 fmt.GoStringer 并格式化 t 以便在 Go 源代码中打印
+```go
+package main
+
+import (
+	"fmt"
+	"time"
+)
+
+func main() {
+	t := time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)
+	fmt.Println(t.GoString())
+	t = t.Add(1 * time.Minute)
+	fmt.Println(t.GoString())
+	t = t.AddDate(0, 1, 0)
+	fmt.Println(t.GoString())
+	t, _ = time.Parse("Jan 2, 2006 at 3:04pm (MST)", "Feb 3, 2013 at 7:54pm (UTC)")
+	fmt.Println(t.GoString())
+
+}
+
+```
+```text
+time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)
+time.Date(2009, time.November, 10, 23, 1, 0, 0, time.UTC)
+time.Date(2009, time.December, 10, 23, 1, 0, 0, time.UTC)
+time.Date(2013, time.February, 3, 19, 54, 0, 0, time.UTC)
+```
+
+
+### func (Time) Hour
+```go
+func (t Time) Hour() int
+```
+返回 t 指定的日期内的小时，范围为 [0, 23]。
+
+### func (Time) Sub
+```go
+func (t Time) Sub(u Time) Duration
+```
+Sub 返回两个时间点 t 和 u 之间经过的时间段。如果结果超出 Duration 范围，则会发生舍入。如果 t 在 u 之前，则结果为负。
+```go
+package main
+
+import (
+	"fmt"
+	"time"
+)
+
+func main() {
+	start := time.Date(2000, 1, 1, 0, 0, 0, 0, time.UTC)
+	end := time.Date(2000, 1, 1, 12, 0, 0, 0, time.UTC)
+
+	difference := end.Sub(start)
+	fmt.Printf("difference = %v\n", difference)
+
+}
+```
+```text
+difference = 12h0m0s
+```
+
+### func (Time) Weekday
+```go
+func (t Time) Weekday() Weekday
+```
+Weekday 返回 t 是一周中的哪一天。
+
+### func (Time) Year
+```go
+func (t Time) Year() int
+```
+返回 t 的年份。
+
+### func (Time) YearDay
+```go
+func (t Time) YearDay() int
+```
+YearDay 返回 t 指定的一年中的某一天，非闰年范围为 [1,365]，闰年范围为 [1,366]。
+
+
+
 
 
 
