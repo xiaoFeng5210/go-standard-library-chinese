@@ -319,6 +319,15 @@ month = February
 day = 1
 ```
 
+### func (Time) Day
+```go
+func (t Time) Day() int
+```
+Day 返回 t 是一周中的哪一天。
+```go
+```
+
+
 
 
 
