@@ -224,7 +224,3 @@ func Split(s, sep string) []string
 - 如果 sep 为空，Split 会在每个 UTF-8 序列后进行拆分。如果 s 和 sep 均为空，Split 会返回一个空切片。
 - 它相当于计数为 -1 的 SplitN 。
 
-
-```go
-package main
-```
