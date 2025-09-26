@@ -1,9 +1,15 @@
 package main
 
 import (
-	httpDemo "example/http-demo"
+	http_demo "example/http-demo"
+	"net/http"
 )
 
 func main() {
-	httpDemo.Example1Server()
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("Hello, World!"))
+	})
+	// 包裹下
+	http.Handle("/", http_demo.TimeCountMiddleware(handler))
+	http.ListenAndServe(":3333", nil)
 }
