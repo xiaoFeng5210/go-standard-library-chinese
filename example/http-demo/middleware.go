@@ -33,6 +33,12 @@ func cors(next http.Handler) http.Handler {
 	})
 }
 
+// 中间件链
 func MiddlewareChain(middlewares ...Middleware) Middleware {
-
+	return func(final http.Handler) http.Handler {
+		for _, middleware := range middlewares {
+			final = middleware(final)
+		}
+		return final
+	}
 }
