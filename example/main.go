@@ -1,15 +1,30 @@
 package main
 
 import (
-	http_demo "example/http-demo"
-	"net/http"
+	"encoding/json"
+	"fmt"
 )
 
+type ListEgItem struct {
+	Name string
+	Desc string
+}
+
 func main() {
-	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("Hello, World!"))
-	})
-	// 包裹下
-	http.Handle("/", http_demo.TimeCountMiddleware(handler))
-	http.ListenAndServe(":3333", nil)
+	item := &ListEgItem{
+		Name: "1",
+		Desc: "描述1",
+	}
+	item2 := &ListEgItem{
+		Name: "2",
+		Desc: "描述2",
+	}
+	// 创建测试数据
+	list := []*ListEgItem{
+		item,
+		item2,
+	}
+
+	listStr, _ := json.Marshal(list)
+	fmt.Println(string(listStr))
 }
