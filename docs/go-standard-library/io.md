@@ -267,7 +267,6 @@ func WriteString(w Writer, s string) (n int, err error)
 ```
 WriteString 将 s 写入 w 中。它返回复制的字节数，以及写入过程中遇到的第一个错误。
 
-
 ```go
 package main
 
