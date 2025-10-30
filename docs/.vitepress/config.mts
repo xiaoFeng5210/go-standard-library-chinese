@@ -35,6 +35,7 @@ export default defineConfig({
             { text: 'strconv', link: '/go-standard-library/strconv.md' },
             { text: 'time', link: '/go-standard-library/time.md' },
             { text: 'strings', link: '/go-standard-library/strings.md' },
+            { text: 'bufio', link: '/go-standard-library/bufio.md' },
             { text: 'path', link: '/go-standard-library/path.md' },
             { text: 'runtime', link: '/go-standard-library/runtime.md' },
           ]
