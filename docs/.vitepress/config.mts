@@ -2,6 +2,7 @@ import { defineConfig } from 'vitepress'
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
+  base: './',
   lang: 'zh-CN',
   title: "Go标准库中文文档",
   description: "Go标准库中文文档",
