@@ -16,7 +16,7 @@ func NewScanner(r io.Reader) *Scanner
 NewScanner 返回一个新的 Scanner 来从 r 读取。split 函数默认为 ScanLines 。
 
 
-### func (*Scanner) Buffer ¶
+### func (*Scanner) Buffer
 
 ```go
 func (s *Scanner) Buffer(buf []byte, max int)
@@ -79,9 +79,6 @@ Split 设置扫描器的分割函数。默认分割函数为 ScanLines 。
 func (s *Scanner) Text() string
 ```
 Text 返回通过调用 Scanner.Scan 生成的最新令牌。底层数组可能指向将被后续 Scan 调用覆盖的数据。它不进行任何分配。
-
-
----
 
 ## type Reader
 
