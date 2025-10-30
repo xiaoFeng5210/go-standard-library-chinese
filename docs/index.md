@@ -11,4 +11,15 @@ hero:
       text: 开始阅读
       link: /go-standard-library/
 
+# features:
+#     - icon: 🛠️
+#       title: Simple and minimal, always
+#       details: Lorem ipsum...
+#     - icon: 🛠️
+#       title: Simple and minimal, always
+#       details: Lorem ipsum...
+#     - icon: 🛠️
+#       title: Simple and minimal, always
+#       details: Lorem ipsum...
+
 
