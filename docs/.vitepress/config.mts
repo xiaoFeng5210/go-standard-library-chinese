@@ -48,5 +48,9 @@ export default defineConfig({
     socialLinks: [
       { icon: 'github', link: 'https://github.com/xiaoFeng5210' }
     ]
+  },
+
+  sitemap: {
+    hostname: 'https://xiaofeng5210.github.io/go-standard-library-chinese/'
   }
 })
