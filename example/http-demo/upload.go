@@ -16,7 +16,6 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 
 	// 限制上传大小 10GB
 	r.Body = http.MaxBytesReader(w, r.Body, 10<<20)
-
 	// 多文件处理
 	if err := r.ParseMultipartForm(32 << 20); err != nil {
 		w.WriteHeader(http.StatusBadRequest)

@@ -23,5 +23,4 @@ func verifyHMAC(secret string, message string, expectedBASE64MAC string) bool {
 	messageMAC, _ := generateHMAC(secret, message)
 	expectedMAC, _ := base64.StdEncoding.DecodeString(expectedBASE64MAC)
 	return hmac.Equal(messageMAC, expectedMAC)
-
 }
