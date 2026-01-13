@@ -3,9 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
-
 	"strconv"
-
 	"time"
 
 	"github.com/apache/rocketmq-clients/golang"
@@ -18,11 +16,15 @@ const (
 	GroupName = "TestGroup"
 )
 
+type Person struct {
+	Name string
+	Age  int
+}
+
 func main() {
 	producer, err := golang.NewProducer(&golang.Config{
-		Endpoint:      Endpoint,
-		ConsumerGroup: GroupName,
-		Credentials:   &credentials.SessionCredentials{},
+		Endpoint:    Endpoint,
+		Credentials: &credentials.SessionCredentials{},
 	}, golang.WithTopics(Topic))
 
 	if err != nil {
@@ -44,7 +46,7 @@ func main() {
 
 		msg.SetKeys("k1", "k2")
 		msg.SetTag("test1")
-		// msg.SetMessageGroup(GroupName)
+		msg.SetMessageGroup(GroupName)
 
 		_, err = producer.Send(context.TODO(), msg)
 		if err != nil {
@@ -54,7 +56,5 @@ func main() {
 
 		time.Sleep(1 * time.Second)
 	}
-
 	fmt.Println("Send success")
-
 }
